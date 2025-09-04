@@ -1,0 +1,42 @@
+#!/bin/bash
+# Deploy Enhanced PostgreSQL MCP Server to Azure Container Apps
+
+set -e
+
+# Configuration
+RESOURCE_GROUP="your-resource-group"
+CONTAINER_ENV="your-container-environment"
+APP_NAME="enhanced-postgresql-mcp"
+IMAGE_NAME="enhanced-postgresql-mcp"
+REGISTRY_NAME="yourregistry.azurecr.io"
+
+# Database configuration
+DB_HOST="your-postgres-server.postgres.database.azure.com"
+DB_USER="your-username"
+DB_PASS="your-password"
+DB_NAME="your-database"
+
+echo "🏗️ Building and deploying Enhanced PostgreSQL MCP Server..."
+
+# Build and push Docker image
+echo "📦 Building Docker image..."
+docker build -t ${IMAGE_NAME} .
+docker tag ${IMAGE_NAME} ${REGISTRY_NAME}/${IMAGE_NAME}:latest
+docker push ${REGISTRY_NAME}/${IMAGE_NAME}:latest
+
+# Deploy to Azure Container Apps
+echo "🚀 Deploying to Azure Container Apps..."
+az containerapp update \
+  --name ${APP_NAME} \
+  --resource-group ${RESOURCE_GROUP} \
+  --image ${REGISTRY_NAME}/${IMAGE_NAME}:latest \
+  --set-env-vars \
+    DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:5432/${DB_NAME}" \
+    DEBUG=false \
+    LOG_LEVEL=INFO
+
+# Health check
+echo "🏥 Checking deployment health..."
+FQDN=$(az containerapp show --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} --query "properties.configuration.ingress.fqdn" -o tsv)
+echo "✅ Deployment successful! App available at: https://${FQDN}"
+echo "🔍 Health check: https://${FQDN}/health/live"

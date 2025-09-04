@@ -1,0 +1,5 @@
+--extra-index-url https://test.pypi.org/simple
+semantic-kernel>=1.0.0
+microsoft-agents-core
+microsoft-agents-copilotstudio-client
+python-dotenv>=1.0.0

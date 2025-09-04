@@ -1,0 +1,25 @@
+swagger: '2.0'
+info:
+  title: APIMBackedPGSQL
+  description: MCP Test Specification, YAML for streamable MCP support in Copilot Studio
+  version: 1.0.0
+host: your-apim-instance.azure-api.net
+basePath: /your-api-path
+schemes:
+  - https
+securityDefinitions:
+  apiKeyHeader:
+    type: apiKey
+    name: Ocp-Apim-Subscription-Key
+    in: header
+security:
+  - apiKeyHeader: []
+paths:
+  /:
+    post:
+      summary: PostgreSQL MCP Server
+      x-ms-agentic-protocol: mcp-streamable-1.0
+      operationId: InvokeMCP
+      responses:
+        '200':
+          description: Success
