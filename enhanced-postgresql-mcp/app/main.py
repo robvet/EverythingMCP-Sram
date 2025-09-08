@@ -43,6 +43,9 @@ mcp_handler = MCPProtocolHandler(tools_manager)
 async def startup_event():
     """Initialize database connections and components"""
     logger.info("Starting Enhanced PostgreSQL MCP Server...")
+    
+    logger.info(f"DATABASE_URL being used: {settings.database_url}")  # Add this
+
     await db_manager.initialize()
     await tools_manager.initialize()
     logger.info("Server initialization complete")

@@ -103,7 +103,7 @@ List tables in a database with size and statistics.
   "method": "tools/call",
   "params": {
     "name": "get_tables",
-    "arguments": {"database": "mydb", "schema": "public"}
+    "arguments": {"database": "test_db", "schema": "public"}
   }
 }
 ```
@@ -170,6 +170,10 @@ docker run -d \\
   -e DATABASE_URL="postgresql://user:pass@host:5432/db" \\
   enhanced-postgresql-mcp
 ```
+
+### Get the container's IP address for the database firewall
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' enhanced-postgresql-mcp
+
 
 ### Docker Compose (Recommended)
 ```yaml
@@ -377,6 +381,53 @@ QUERY_TIMEOUT_SECONDS=60
 DB_MAX_CONNECTIONS=10
 MAX_PREVIEW_ROWS=5
 ```
+
+### Troubleshooting: Container Crashes
+
+If your container starts and then stops/crashes:
+
+1. Check logs:
+   ```bash
+   docker logs mcp-server
+   ```
+2. Common issues:
+   - Database not reachable (firewall, credentials, network)
+   - Missing or incorrect environment variables
+   - Application errors at startup
+   - Port 8000 already in use on host
+
+3. Fix the root cause, then restart the container.
+
+### Troubleshooting: Database Hostname
+
+If you get DNS errors like `[Errno -2] Name or service not known`:
+
+1. Go to the Azure Portal and copy the exact "Server name" for your PostgreSQL instance.
+2. In your `.env` file, ensure the `DATABASE_URL` uses this hostname, e.g.:
+   ```
+   DATABASE_URL=postgresql://username:password@your-server-name.postgres.database.azure.com:5432/yourdb?sslmode=require
+   ```
+3. Test DNS from inside a container:
+   ```bash
+   docker run --rm busybox nslookup your-server-name.postgres.database.azure.com
+   ```
+   If this fails, check your Docker network and internet access.
+
+4. After correcting, restart your container.
+
+### Troubleshooting: Azure PostgreSQL Firewall and Docker
+
+If your container cannot connect to Azure PostgreSQL:
+
+1. **Get your public IP address** (from the host, not the container):
+   ```bash
+   curl ifconfig.me
+   ```
+2. **Go to the Azure Portal** → your PostgreSQL server → Networking/Firewall rules.
+3. **Add your public IP** to the allowed list.
+4. **Restart your container** and try connecting again.
+
+> **Note:** The container uses the host's public IP for outbound connections. The internal Docker IP is not relevant for Azure firewall rules.
 
 ## 🗺️ Roadmap
 
